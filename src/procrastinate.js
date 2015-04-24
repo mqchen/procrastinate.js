@@ -21,13 +21,6 @@ var procrastinate = function() {
 
 procrastinate.prototype._triggerEvent = function(event, args) {
 	return deferred.map(this.listeners[event], deferred.gate(function(listener) {
-		// if(!deferred.isPromise(listener)) { // « Does not even work on promises from the library!
-		if(listener.hasOwnProperty('then')) {
-			listener = function(args) {
-				listener.apply(this, args);
-				return deferred(1).promise;
-			}.bind(this);
-		}
 		return listener.apply(this, args);
 	}.bind(this), this.options.maxConcurrency[event]));
 };
@@ -45,8 +38,8 @@ procrastinate.prototype.doNow = function(enqueue) {
 
 	if(this.isDoing()) {
 		if(!enqueue) return deferred(1);
-		this._doingPromise.then(function() {
-			console.log("Enqueued run.")
+		this._doingPromise(function() {
+			// console.log("Enqueued run.")
 			return this.doNow();
 		});
 	}

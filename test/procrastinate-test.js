@@ -41,12 +41,42 @@ buster.testCase('procrastinate.js', {
 	},
 
 	"normal callback instead of deferred support": function() {
+
+		var runCount = 0;
+		this.procrastinateInst.on('beforeDo', function() {
+			runCount++;
+		});
+
+		assert.equals(runCount, 0);
+		this.procrastinateInst.doNow();
+		assert.equals(runCount, 1);
+		this.procrastinateInst.doNow();
+		assert.equals(runCount, 2);
+
 		var l1 = sinon.spy();
 
 		this.procrastinateInst.on('beforeDo', l1);
 		assert.equals(l1.callCount, 0);
 		this.procrastinateInst.doNow();
 		assert.calledOnce(l1);
+	},
+
+	"mix of normal callback and deferred": function() {
+		var l1 = sinon.spy();
+		var d2 = deferred();
+		var s2 = sinon.spy(function() { d2.resolve(); });
+
+		this.procrastinateInst.on('beforeDo', l1);
+		this.procrastinateInst.on('beforeDo', function() {
+			setTimeout(s2, 1000);
+			return d2.promsie;
+		});
+		this.procrastinateInst.doNow();
+		assert.equals(l1.callCount, 1);
+		assert.equals(s2.callCount, 0);
+		this.clock.tick(1001);
+		assert.equals(l1.callCount, 1);
+		assert.equals(s2.callCount, 1);
 	},
 
 	"multiple listeners to beforeDo and called in right order": function() {
