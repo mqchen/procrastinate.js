@@ -11,11 +11,12 @@ var procrastinate = function() {
 
 	this.listeners = {
 		'beforeDo' : [],
-		'afterDo' : [],
-		'doing' : []
+		'doing' : [],
+		'afterDo' : []
 	};
 
-	this.laterTimer;
+	this._doingPromise = null;
+	this._laterTimer;
 };
 
 procrastinate.prototype._triggerEvent = function(event, args) {
@@ -31,21 +32,47 @@ procrastinate.prototype._triggerEvent = function(event, args) {
 	}.bind(this), this.options.maxConcurrency[event]));
 };
 
-procrastinate.prototype.doLater = function(delay) {
-	clearTimeout(this.laterTimer);
-	this.laterTimer = setTimeout(function() {
-		this.doNow();
+procrastinate.prototype.doLater = function(delay, enqueue) {
+	clearTimeout(this._laterTimer);
+	this._laterTimer = setTimeout(function() {
+		this.doNow(enqueue);
 	}.bind(this), delay);
 };
 
-procrastinate.prototype.doNow = function() {
-	return deferred.map(['beforeDo', 'doing', 'afterDo'], deferred.gate(function(event) {
+procrastinate.prototype.doNow = function(enqueue) {
+	enqueue = enqueue === undefined ? true : enqueue;
+	var d = deferred();
+
+	if(this.isDoing()) {
+		if(!enqueue) return deferred(1);
+		this._doingPromise.then(function() {
+			console.log("Enqueued run.")
+			return this.doNow();
+		});
+	}
+	else {
+		this._doingPromise = d.promise;
+	}
+
+	deferred.map(Object.keys(this.listeners), deferred.gate(function(event) {
 		return this._triggerEvent(event);
-	}.bind(this), 1));
+	}.bind(this), 1)).then(function() {
+		this._doingPromise = null;
+		d.resolve();
+	}.bind(this));
+
+	return d.promise;
 };
 
 procrastinate.prototype.on = function(event, listener) {
 	this.listeners[event].push(listener);
+};
+
+procrastinate.prototype.isDoing = function() {
+	return !!this._doingPromise;
+};
+procrastinate.prototype.getDoing = function() {
+	return this._doingPromise || deferred(1);
 };
 
 module.exports = procrastinate;

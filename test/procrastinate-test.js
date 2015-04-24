@@ -22,6 +22,8 @@ buster.testCase('procrastinate.js', {
 		assert.isFunction(this.procrastinateInst.doLater);
 		assert.isFunction(this.procrastinateInst.doNow);
 		assert.isFunction(this.procrastinateInst.on);
+		assert.isFunction(this.procrastinateInst.isDoing);
+		assert.isFunction(this.procrastinateInst.getDoing);
 	},
 
 	"deferred listener support": function() {
@@ -94,7 +96,7 @@ buster.testCase('procrastinate.js', {
 
 		assert.calledOnce(l1);
 
-		this.clock.tick(100000);
+		this.clock.tick(1000000);
 
 		assert.calledOnce(l1);
 	},
@@ -220,7 +222,7 @@ buster.testCase('procrastinate.js', {
 		assert.equals(s3.callCount, 0);
 		assert.equals(s4.callCount, 0);
 
-		this.clock.tick(1001); // 3 sec later, when after do is done
+		this.clock.tick(1001); // 3 sec later, when second doing is done
 
 		assert.equals(s1.callCount, 1);
 		assert.equals(s2.callCount, 1);
@@ -235,31 +237,130 @@ buster.testCase('procrastinate.js', {
 		assert.equals(s4.callCount, 1);
 	},
 
-	"// doing should complete before afterDo is called": function() {
-		var l1 = sinon.spy();
-		var l2 = sinon.spy();
+	"isDoing should return true when a do is running": function() {
+		var d = deferred();
+		var s1 = sinon.spy(function() { d.resolve(); });
 
-		this.procrastinateInst.on('beforeDo', l1);
-		this.procrastinateInst.on('afterDo', l2);
-		this.procrastinateInst.on('doing', function() {
-			var d = deferred();
-			setTimeout(function() {
-				d.resolve();
-			}, 3000);
+		this.procrastinateInst.on('beforeDo', function() {
+			setTimeout(s1, 1000);
 			return d.promise;
+		});
+		assert.isFalse(this.procrastinateInst.isDoing());
+		this.procrastinateInst.doNow();
+		assert.isTrue(this.procrastinateInst.isDoing());
+		this.clock.tick(500);
+		assert.isTrue(this.procrastinateInst.isDoing());
+		this.clock.tick(501);
+		assert.isFalse(this.procrastinateInst.isDoing());
+	},
+
+	"calling doNow while isDoing should discard if enqueue false": function() {
+		var d = deferred();
+		var s1 = sinon.spy(function() { d.resolve(); });
+
+		this.procrastinateInst.on('beforeDo', function() {
+			setTimeout(s1, 1000);
+			return d.promise;
+		});
+		assert.isFalse(this.procrastinateInst.isDoing());
+		this.procrastinateInst.doNow();
+		assert.isTrue(this.procrastinateInst.isDoing());
+
+		var count = 100;
+		while(count--) {
+			this.procrastinateInst.doNow(false);
+		}
+
+		this.clock.tick(2000);
+		assert.isFalse(this.procrastinateInst.isDoing());
+		assert.calledOnce(s1);
+	},
+
+	"calling doLater while isDoing should discard if enqueue false": function() {
+		var d = deferred();
+		var s1 = sinon.spy(function() { d.resolve(); });
+
+		this.procrastinateInst.on('beforeDo', function() {
+			setTimeout(s1, 2000);
+			return d.promise;
+		});
+		assert.isFalse(this.procrastinateInst.isDoing());
+		this.procrastinateInst.doNow();
+		assert.isTrue(this.procrastinateInst.isDoing());
+
+		var count = 100;
+		while(count--) {
+			this.procrastinateInst.doLater(1000, false);
+		}
+
+		this.clock.tick(2001);
+		assert.isFalse(this.procrastinateInst.isDoing());
+		assert.calledOnce(s1);
+	},
+
+	"hook up to currently running promise while it is running": function() {
+		var d1 = deferred();
+		var s1 = sinon.spy(function() { d1.resolve(); });
+
+		var d2 = deferred();
+		var s2 = sinon.spy(function() { d2.resolve(); });
+
+		this.procrastinateInst.on('doing', function() {
+			setTimeout(s1, 1000);
+			return d1.promise;
 		});
 
 		this.procrastinateInst.doNow();
+		this.clock.tick(500);
 
-		assert.calledOnce(l1);
-		assert.equals(l2.callCount, 0);
+		this.procrastinateInst.getDoing().done(function() {
+			setTimeout(s2, 1000);
+			return d2.promsie;
+		});
 
-		this.clock.tick(2000);
+		this.clock.tick(501);
+		assert.equals(s1.callCount, 1);
+		assert.equals(s2.callCount, 0);
 
-		assert.equals(l2.callCount, 0);
+		this.clock.tick(1001);
+		assert.equals(s1.callCount, 1);
+		assert.equals(s2.callCount, 1);
+	},
 
-		this.clock.tick(3001);
+	"getting running doing while not running should give dummy promise instead of null": function() {
+		assert.isFalse(this.procrastinateInst.isDoing());
+		refute.isNull(this.procrastinateInst.getDoing())
+		var ran = false;
+		this.procrastinateInst.getDoing().then(function() {
+			ran = true;
+		});
+		assert.isTrue(ran);
+	},
 
-		assert.calledOnce(l2);
+	"// calling doNow with enqueue should enqueue it": function() {
+		var d = deferred();
+		var s1 = sinon.spy(function() { d.resolve(); });
+
+		this.procrastinateInst.on('beforeDo', function() {
+			setTimeout(s1, 1000);
+			return d.promise;
+		});
+		assert.isFalse(this.procrastinateInst.isDoing());
+		this.procrastinateInst.doNow();
+		assert.isTrue(this.procrastinateInst.isDoing());
+
+		var count = 100;
+		while(count--) {
+			this.procrastinateInst.doNow(true);
+		}
+
+		this.clock.tick(1000 * 1);
+		assert.equals(s1.callCount, 1);
+
+		this.clock.tick(1000 * 2);
+		assert.equals(s1.callCount, 2);
+
+		this.clock.tick(1000 * 100);
+		assert.equals(s1.callCount, 100);
 	}
 });
