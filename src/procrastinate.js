@@ -31,7 +31,6 @@ procrastinate.prototype.doLater = function(delay, enqueue) {
 	}.bind(this), delay);
 };
 
-
 procrastinate.prototype._do = function() {
 	var d = deferred();
 

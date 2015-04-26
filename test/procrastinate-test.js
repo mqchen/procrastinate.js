@@ -375,10 +375,16 @@ buster.testCase('procrastinate.js', {
 
 	"calling doNow with enqueue should enqueue it": function() {
 		var d = deferred();
-		var s1 = sinon.spy(function() { d.resolve(); });
+		var s1 = {};
+		s1.callCount = 0;
+		// var s1 = sinon.spy(function() { d.resolve(); });
 
 		this.procrastinateInst.on('beforeDo', function() {
-			setTimeout(s1, 1000);
+			// setTimeout(s1, 1000);
+			setTimeout(function() {
+				s1.callCount++;
+				d.resolve();
+			}, 1000);
 			return d.promise;
 		});
 
@@ -390,6 +396,21 @@ buster.testCase('procrastinate.js', {
 		while(count--) {
 			this.procrastinateInst.doNow(true);
 		}
+
+		this.clock.tick(1001);
+		assert.equals(s1.callCount, 1);
+
+		/*
+		 * (I think) there is a bug in Sinon Clock that causes all
+		 * setTimeout to ignore their delay. Either that, or there is
+		 * something wrong with this test
+		 */
+
+		// this.clock.tick(1001);
+		// assert.equals(s1.callCount, 2);
+
+		// this.clock.tick(1001);
+		// assert.equals(s1.callCount, 3);
 
 		this.clock.tick(1000 * 100 + 1);
 		assert.equals(s1.callCount, 101);
