@@ -403,7 +403,9 @@ buster.testCase('procrastinate.js', {
 		/*
 		 * (I think) there is a bug in Sinon Clock that causes all
 		 * setTimeout to ignore their delay. Either that, or there is
-		 * something wrong with this test
+		 * something wrong with this test.
+		 *
+		 * However, this case is asserted with the README test.
 		 */
 
 		// this.clock.tick(1001);
@@ -414,5 +416,59 @@ buster.testCase('procrastinate.js', {
 
 		this.clock.tick(1000 * 100 + 1);
 		assert.equals(s1.callCount, 101);
+	},
+
+	'README example: Custom async settings per event': function() {
+		var p = new procrastinate({
+			'events': {
+				'beforeSave': 1, // No async
+				'save': 2, // A little async
+				'afterSave': 1 // No async
+			}
+		});
+
+		var log = [];
+
+		p.on('beforeSave', function() { log.push('Preparing to save') });
+		p.on('beforeSave', function() {
+			var d = deferred();
+			setTimeout(function() {
+				// Wait a little before we start...
+				log.push('Done waiting');
+				d.resolve();
+			}, 1000);
+			return d.promise;
+		});
+		var save = function() {
+			var d = deferred();
+			setTimeout(function() {
+				log.push('Save half-way');
+				setTimeout(function() {
+					log.push('Save completed');
+					d.resolve();
+				}, 1000);
+			}, 1000);
+			return d.promise;
+		};
+		p.on('save', save);
+		p.on('save', save);
+		p.on('afterSave', function() {  log.push('Done saving, phew') });
+
+	    // Call it
+		p.doNow();
+
+		var expectedLog = [
+			"Preparing to save",
+			"Done waiting",
+			"Save half-way",
+			"Save half-way",
+			"Save completed",
+			"Save completed",
+			"Done saving, phew"
+		];
+
+		this.clock.tick(1000 * 10);
+
+		assert.equals(log, expectedLog);
 	}
 });
