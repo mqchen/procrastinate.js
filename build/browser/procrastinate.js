@@ -77,7 +77,7 @@ procrastinate.prototype.getDoing = function() {
 };
 
 procrastinate.prototype.abort = function() {
-	this._shouldAbort = true;
+	if(this.isDoing()) this._shouldAbort = true;
 };
 
 module.exports = procrastinate;

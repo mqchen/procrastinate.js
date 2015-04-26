@@ -537,5 +537,22 @@ buster.testCase('procrastinate.js', {
 		assert.equals(s1.callCount, 1);
 		assert.equals(s2.callCount, 1);
 		assert.equals(s3.callCount, 0);
+	},
+
+	'calling abort when nothing is running should have no effect': function() {
+		var s1 = sinon.spy();
+		var s2 = sinon.spy();
+		var s3 = sinon.spy();
+
+		this.procrastinateInst.on('beforeDo', s1);
+		this.procrastinateInst.on('beforeDo', s2);
+		this.procrastinateInst.on('doing', s3);
+
+		this.procrastinateInst.abort();
+		this.procrastinateInst.doNow();
+
+		assert.equals(s1.callCount, 1);
+		assert.equals(s2.callCount, 1);
+		assert.equals(s3.callCount, 1);
 	}
 });
