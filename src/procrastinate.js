@@ -1,20 +1,19 @@
 var deferred = require('deferred');
+var queue = require('deferred-queue');
+var extend = require('extend');
 
-var procrastinate = function() {
+var procrastinate = function(customOptions) {
 	this.options = {
-		'maxConcurrency': {
-			'beforeDo' : 1,
-			'afterDo' : 1,
-			'doing' : 1
-		}
+		'events': {} // key = event name, value = concurrency
 	};
+	extend(true, this.options, customOptions);
 
-	this.listeners = {
-		'beforeDo' : [],
-		'doing' : [],
-		'afterDo' : []
-	};
+	this.listeners = {};
+	Object.keys(this.options.events).map(function(event) {
+		this.listeners[event] = [];
+	}.bind(this));
 
+	this._queue = queue();
 	this._doingPromise = null;
 	this._laterTimer;
 };
@@ -22,7 +21,7 @@ var procrastinate = function() {
 procrastinate.prototype._triggerEvent = function(event, args) {
 	return deferred.map(this.listeners[event], deferred.gate(function(listener) {
 		return listener.apply(this, args);
-	}.bind(this), this.options.maxConcurrency[event]));
+	}.bind(this), this.options.events[event]));
 };
 
 procrastinate.prototype.doLater = function(delay, enqueue) {
@@ -32,29 +31,32 @@ procrastinate.prototype.doLater = function(delay, enqueue) {
 	}.bind(this), delay);
 };
 
-procrastinate.prototype.doNow = function(enqueue) {
-	enqueue = enqueue === undefined ? true : enqueue;
+
+procrastinate.prototype._do = function() {
 	var d = deferred();
 
-	if(this.isDoing()) {
-		if(!enqueue) return deferred(1);
-		this._doingPromise(function() {
-			// console.log("Enqueued run.")
-			return this.doNow();
-		});
-	}
-	else {
+	var task = function(cb) {
 		this._doingPromise = d.promise;
-	}
+		deferred.map(Object.keys(this.listeners), deferred.gate(function(event) {
+			return this._triggerEvent(event);
+		}.bind(this), 1)).then(function() {
+			this._doingPromise = null;
+			d.resolve();
+			cb(null);
+		}.bind(this));
+	}.bind(this);
 
-	deferred.map(Object.keys(this.listeners), deferred.gate(function(event) {
-		return this._triggerEvent(event);
-	}.bind(this), 1)).then(function() {
-		this._doingPromise = null;
-		d.resolve();
-	}.bind(this));
+	this._queue.push(task);
 
 	return d.promise;
+};
+
+procrastinate.prototype.doNow = function(enqueue) {
+	enqueue = enqueue === undefined ? true : enqueue;
+
+	if(this.isDoing && !enqueue) return deferred(1);
+	
+	return this._do();
 };
 
 procrastinate.prototype.on = function(event, listener) {
