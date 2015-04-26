@@ -1,5 +1,7 @@
 # What is procrastinate.js?
 
+![build status](https://travis-ci.org/mqchen/procrastinate.js.svg?branch=master)
+
 Ever wanted to do things later and one thing at a time? Well now you can! You can even not do thing if you are already doing one thing.
 
 # Usage
