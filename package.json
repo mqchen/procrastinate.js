@@ -1,5 +1,5 @@
 {
-  "name": "procrastinate",
+  "name": "procrastinate-queue",
   "version": "1.0.0",
   "private": false,
   "scripts": {
@@ -20,7 +20,7 @@
     "deferred-queue": "^0.5.1",
     "extend": "^2.0.1"
   },
-  "description": "Ever wanted to do things later and one thing at a time? Well now you can! You can even not do thing if you are already doing one thing.",
+  "description": "Ever wanted to do things later and one only thing at a time? Well now you can! You can even not do the thing if you are already doing one thing.",
   "main": "Gruntfile.js",
   "directories": {
     "test": "test"
