@@ -38,23 +38,24 @@ procrastinate.prototype._do = function() {
 		this._doingPromise = d.promise;
 		deferred.map(Object.keys(this.listeners), deferred.gate(function(event) {
 			return this._triggerEvent(event);
-		}.bind(this), 1)).then(function() {
+		}.bind(this), 1))
+		.done(function(result) {
+			d.resolve(result);
 			this._doingPromise = null;
-			d.resolve();
 			cb(null);
 		}.bind(this));
 	}.bind(this);
 
 	this._queue.push(task);
-
 	return d.promise;
 };
 
 procrastinate.prototype.doNow = function(enqueue) {
 	enqueue = enqueue === undefined ? true : enqueue;
 
+	clearTimeout(this._laterTimer);
+
 	if(this.isDoing && !enqueue) return deferred(1);
-	
 	return this._do();
 };
 

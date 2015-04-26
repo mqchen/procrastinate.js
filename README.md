@@ -59,16 +59,18 @@ p.doNow();
     Save completed
     Done saving, phew
 
-## Use case: autosave form data to server without spamming the server
+## Use case: autosave form to server without spamming the server
 
 ```javascript
 var p = new procrastinate(/* your events */);
 p.on(/* your listeners */);
 
-document.query('input, select, textarea').on('change', function() {
+$('input, select, textarea').on('change', function() {
 	p.doLater(3000); // Only do after 3 sec of inactivity
+	// If 3 sec delay happens to expire when it is already saving it will be ignored
+	// since enqueue is not set to true
 });
-document.query('button.saveButton').on('click', function() {
+$('.saveButton').on('click', function() {
 	p.doNow(true); // Do now, enqueue if necessary.
     // Enqueue means that if something is running it will do after current task is done
 });
@@ -77,11 +79,10 @@ document.query('button.saveButton').on('click', function() {
 # Install
 
 node
-```javascript
-var procrastinate = require('procrastinate');
-```
+
+	npm install --save procrastinate
 
 browser
 ```html
-<script src="build/procrastinate.min.js"></script>
+<script src="build/browser/procrastinate.min.js"></script>
 ```
