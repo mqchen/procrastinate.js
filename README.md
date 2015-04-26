@@ -1,6 +1,7 @@
 # What is procrastinate.js?
 
-![build status](https://travis-ci.org/mqchen/procrastinate.js.svg?branch=master)
+[![Build Status](https://travis-ci.org/mqchen/procrastinate.js.svg?branch=master)](https://travis-ci.org/mqchen/procrastinate.js)
+[![Coverage Status](https://coveralls.io/repos/mqchen/procrastinate.js/badge.svg)](https://coveralls.io/r/mqchen/procrastinate.js)
 
 Ever wanted to do things later and one only thing at a time? Well now you can! You can even not do the thing if you are already doing one thing.
 

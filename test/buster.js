@@ -8,5 +8,13 @@ config["AutosaveScheduler tests"] = {
     ],
     tests: [
         "test/*-test.js"
+    ],
+    'buster-istanbul': {
+      outputDirectory: "coverage",
+      format: "lcov",
+      excludes: ["**/*.json"]
+    },
+    extensions: [
+		require('buster-istanbul')
     ]
 }

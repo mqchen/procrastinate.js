@@ -6,6 +6,11 @@ module.exports = function (grunt) {
 				config: 'test/buster.js'
 			}
 		},
+		coveralls: {
+			procrastinate: {
+				src: 'coverage/lcov.info'
+			}
+		},
 		watch: {
 			files: ['*.js', 'test/**/*.js'],
 			tasks: ['test', 'build']
@@ -33,6 +38,7 @@ module.exports = function (grunt) {
 	grunt.loadNpmTasks('grunt-notify');
 	grunt.loadNpmTasks('grunt-browserify');
 	grunt.loadNpmTasks('grunt-contrib-uglify');
+	grunt.loadNpmTasks('grunt-coveralls');
 
 	grunt.registerTask('test', 'buster');
 	grunt.registerTask('minify', 'uglify');
