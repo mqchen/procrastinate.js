@@ -78,11 +78,13 @@ $('.saveButton').on('click', function() {
 
 # Install
 
-node
+**node**
 
-	npm install --save procrastinate
+	npm install --save procrastinate-queue
 
-browser
+(The name "procrastinate" was actually taken...)
+
+**browser**
 ```html
 <script src="build/browser/procrastinate.min.js"></script>
 ```
@@ -101,13 +103,26 @@ var p = new procrastinate({
     }
 });
 ```
-The events will be executed in the specified order. For example, `beforeSave` will run after all `validate` events have finished. Additionally, the listeneres to both `validate` and `beforeSave` will run sequentially.
+The events will be executed in the specified order. For example, `beforeSave` will run after all `validate` events have finished. Additionally, the listeneres to both `validate` and `beforeSave` will run sequentially. `save` will allow 2 listners to run simultaneously while `afterSave` will allow 10.
 
 ### on(listener)
 
 Add event listeners to your events. The listeners will be executed in the order they are added.
 
 Both regular functions and deferred functions are supported.
+
+Example:
+
+```javascript
+p.on('save', function() {  /* Do something syncronously */ });
+p.on('save', function() {  
+	var d = deferred(); // Use: https://www.npmjs.com/package/deferred
+    setTimeout(function() {
+    	d.resolve();
+    }, 1000);
+    return d.promise();
+});
+```
 
 ### doNow(enqueue = false)
 
