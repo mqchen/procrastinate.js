@@ -86,3 +86,53 @@ browser
 ```html
 <script src="build/browser/procrastinate.min.js"></script>
 ```
+
+# Methods
+
+### new procrastinate(customOptions)
+
+Initialize with options that declare your event flow/order and max concurrency for each event.
+
+Example:
+```javascript
+var p = new procrastinate({
+	'events': {
+    	'validate': 1, 'beforeSave': 1, 'save': 2, 'afterSave': 10
+    }
+});
+```
+The events will be executed in the specified order. For example, `beforeSave` will run after all `validate` events have finished. Additionally, the listeneres to both `validate` and `beforeSave` will run sequentially.
+
+### on(listener)
+
+Add event listeners to your events. The listeners will be executed in the order they are added.
+
+Both regular functions and deferred functions are supported.
+
+### doNow(enqueue = false)
+
+Execute the event chain now. This method returns a promise which will be resolved once the entire event chain has completed.
+
+If `enqueue` is false or undefined, and if there is already another event chain ongoing, this will do nothing, and the returned promise will resolve immediately.
+
+Set `enqueue` to true to execute the event chain once the ongoing event chain has completed.
+
+### doLater(timeout, enqueue = false)
+
+Execute the event chain when the timeout has expired. However, if doLater is called before the previous timeout has expired, it will cancel the previous doLater. This method returns a promise that resolves when the deferred event chain completes. (It will not resolve if it cleared. This behaviour might change in a future version.)
+
+Set `enqueue` to true to execute the doLater after any ongoing event chain has completed.
+
+A doNow clears any unenqueued doLater. To prevent your doLater from being cleared by a doNow set `enqueue` to true.
+
+### isDoing()
+
+Returns true if an event chain is currently executing.
+
+### getDoing()
+
+Get the promise for the ongoing event chain. If there is no ongoing event chain this will return an immediately resolved promise.
+
+### abort()
+
+Calling this method while an event chain is ongoing will prevent the next event in the chain from executing. It will not abort the ongoing event because events might be running in parallell. 
