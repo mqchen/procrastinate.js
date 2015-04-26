@@ -2,7 +2,7 @@
 
 ![build status](https://travis-ci.org/mqchen/procrastinate.js.svg?branch=master)
 
-Ever wanted to do things later and one thing at a time? Well now you can! You can even not do thing if you are already doing one thing.
+Ever wanted to do things later and one only thing at a time? Well now you can! You can even not do the thing if you are already doing one thing.
 
 # Usage
 
@@ -13,7 +13,7 @@ var p = new procrastinate({
 	'events': {
 		'beforeSave': 1, // No async
 		'save': 2, // A little async
-		'afterSave': 1 // No async
+		'afterSave': 100 // Very async
 	}
 });
 

@@ -450,7 +450,7 @@ buster.testCase('procrastinate.js', {
 			'events': {
 				'beforeSave': 1, // No async
 				'save': 2, // A little async
-				'afterSave': 1 // No async
+				'afterSave': 100 // Very async
 			}
 		});
 
