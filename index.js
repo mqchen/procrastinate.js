@@ -17,6 +17,7 @@ var procrastinate = function(customOptions) {
 	this._doingPromise = null;
 	this._laterTimer;
 	this._laterEnqueue = false;
+	this._shouldAbort = false;
 };
 
 procrastinate.prototype._triggerEvent = function(event, args) {
@@ -39,11 +40,12 @@ procrastinate.prototype._do = function() {
 	var task = function(cb) {
 		this._doingPromise = d.promise;
 		deferred.map(Object.keys(this.listeners), deferred.gate(function(event) {
-			return this._triggerEvent(event);
+			return !this._shouldAbort && this._triggerEvent(event);
 		}.bind(this), 1))
 		.done(function(result) {
 			d.resolve(result);
 			this._doingPromise = null;
+			this._shouldAbort = false;
 			cb(null);
 		}.bind(this));
 	}.bind(this);
@@ -68,8 +70,13 @@ procrastinate.prototype.on = function(event, listener) {
 procrastinate.prototype.isDoing = function() {
 	return !!this._doingPromise;
 };
+
 procrastinate.prototype.getDoing = function() {
 	return this._doingPromise || deferred(1);
+};
+
+procrastinate.prototype.abort = function() {
+	this._shouldAbort = true;
 };
 
 module.exports = procrastinate;

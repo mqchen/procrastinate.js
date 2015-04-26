@@ -30,6 +30,7 @@ buster.testCase('procrastinate.js', {
 		assert.isFunction(this.procrastinateInst.on);
 		assert.isFunction(this.procrastinateInst.isDoing);
 		assert.isFunction(this.procrastinateInst.getDoing);
+		assert.isFunction(this.procrastinateInst.abort);
 	},
 
 	"deferred listener support": function() {
@@ -520,7 +521,21 @@ buster.testCase('procrastinate.js', {
 		assert.equals(fail.callCount, 1);
 	},
 
-	// 'abort while doing should not call next event': function() {
+	'abort while doing should not call next event, but have no impact within current event (because of possible async)': function() {
+		var s1 = sinon.spy();
+		var s2 = sinon.spy(function() {
+			this.procrastinateInst.abort();
+		}.bind(this));
+		var s3 = sinon.spy();
 
-	// }
+		this.procrastinateInst.on('beforeDo', s1);
+		this.procrastinateInst.on('beforeDo', s2);
+		this.procrastinateInst.on('doing', s3);
+
+		this.procrastinateInst.doNow();
+
+		assert.equals(s1.callCount, 1);
+		assert.equals(s2.callCount, 1);
+		assert.equals(s3.callCount, 0);
+	}
 });
