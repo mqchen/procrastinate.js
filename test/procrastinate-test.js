@@ -4,7 +4,7 @@ var refute = buster.referee.refute;
 var sinon = require('sinon');
 var deferred = require('deferred');
 
-var procrastinate = require('../src/procrastinate');
+var procrastinate = require('../index');
 
 sinon.assert.expose(assert);
 
@@ -452,6 +452,7 @@ buster.testCase('procrastinate.js', {
 		};
 		p.on('save', save);
 		p.on('save', save);
+		p.on('save', save);
 		p.on('afterSave', function() {  log.push('Done saving, phew') });
 
 	    // Call it
@@ -463,6 +464,8 @@ buster.testCase('procrastinate.js', {
 			"Save half-way",
 			"Save half-way",
 			"Save completed",
+			"Save completed",
+			"Save half-way",
 			"Save completed",
 			"Done saving, phew"
 		];

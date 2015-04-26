@@ -4,7 +4,7 @@ config["AutosaveScheduler tests"] = {
     rootPath: "../",
     environment: "node", // or "browser"
     sources: [
-        "src/**/*.js"
+        "index.js"
     ],
     tests: [
         "test/*-test.js"
