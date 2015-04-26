@@ -17,6 +17,7 @@ var procrastinate = function(customOptions) {
 	this._queue = queue();
 	this._doingPromise = null;
 	this._laterTimer;
+	this._laterEnqueue = false;
 };
 
 procrastinate.prototype._triggerEvent = function(event, args) {
@@ -27,6 +28,7 @@ procrastinate.prototype._triggerEvent = function(event, args) {
 
 procrastinate.prototype.doLater = function(delay, enqueue) {
 	clearTimeout(this._laterTimer);
+	this._laterEnqueue = enqueue;
 	this._laterTimer = setTimeout(function() {
 		this.doNow(enqueue);
 	}.bind(this), delay);
@@ -54,7 +56,7 @@ procrastinate.prototype._do = function() {
 procrastinate.prototype.doNow = function(enqueue) {
 	enqueue = enqueue === undefined ? true : enqueue;
 
-	clearTimeout(this._laterTimer);
+	if(!this._laterEnqueue) clearTimeout(this._laterTimer);
 
 	if(this.isDoing && !enqueue) return deferred(1);
 	return this._do();

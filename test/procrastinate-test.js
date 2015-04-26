@@ -137,7 +137,7 @@ buster.testCase('procrastinate.js', {
 		assert.calledOnce(l1);
 	},
 
-	'a doNow should clear a doLater because it is now done': function() {
+	'doNow should clear a doLater because it is now done': function() {
 		var s1 = sinon.spy();
 
 		this.procrastinateInst.on('beforeDo', s1);
@@ -148,6 +148,19 @@ buster.testCase('procrastinate.js', {
 		assert.equals(s1.callCount, 1);
 		this.clock.tick(3001);
 		assert.equals(s1.callCount, 1);
+	},
+
+	'doNow should not clear doLater if the doLater is enqueued': function() {
+		var s1 = sinon.spy();
+
+		this.procrastinateInst.on('beforeDo', s1);
+
+		this.procrastinateInst.doLater(3000, true);
+		assert.equals(s1.callCount, 0);
+		this.procrastinateInst.doNow();
+		assert.equals(s1.callCount, 1);
+		this.clock.tick(3001);
+		assert.equals(s1.callCount, 2);
 	},
 
 	"afterDo should be called after the doing is done": function() {
