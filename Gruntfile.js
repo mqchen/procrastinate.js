@@ -16,9 +16,12 @@ module.exports = function (grunt) {
 			tasks: ['test', 'build']
 		},
 		browserify: {
+			options: {
+				require: ['./index.js:procrastinate']
+			},
 			build: {
 				src: 'index.js',
-				dest: 'build/browser/procrastinate.js'
+				dest: 'build/browser/procrastinate.js',
 			}
 		},
 		uglify: {

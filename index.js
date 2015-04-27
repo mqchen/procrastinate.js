@@ -72,7 +72,7 @@ procrastinate.prototype.isDoing = function() {
 };
 
 procrastinate.prototype.getDoing = function() {
-	return this._doingPromise || deferred(1);
+	return this._doingPromise || deferred(1);
 };
 
 procrastinate.prototype.abort = function() {
