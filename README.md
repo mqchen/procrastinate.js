@@ -85,11 +85,17 @@ $('.saveButton').on('click', function() {
 
 	npm install --save procrastinate-queue
 
+```javascript
+var procrastinate = require('procrastinate-queue');
+```
 (The name "procrastinate" was actually taken...)
 
 **browser**
 ```html
 <script src="build/browser/procrastinate.min.js"></script>
+<script>
+	var procrastinate = require('procrastinate');
+</script>
 ```
 
 # Methods
